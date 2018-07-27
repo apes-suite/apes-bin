@@ -1,0 +1,32 @@
+#! /usr/bin/env python
+
+top = '.'
+out = 'build'
+
+def options(opt):
+	opt.load('compiler_cxx python')
+
+def configure(conf):
+	conf.load('compiler_cxx python protoc')
+	conf.check_python_version(minver=(2, 5, 0))
+
+def build(bld):
+	bld(
+		features = 'cxx cxxshlib',
+		source   = ['inc/message_inc.proto','inc/message.proto'],
+		target   = 'somelib',
+		includes = ['inc'])
+
+
+	bld(
+		features = 'py',
+		name = 'pbpy',
+		source   = ['inc/message_inc.proto','inc/message.proto'],
+		protoc_includes = ['inc'])
+
+	bld(
+		features = 'cxx py',
+		name = 'pbboth',
+		source   = ['incboth/messageboth_inc.proto', 'incboth/messageboth.proto'],
+		protoc_includes = ['incboth']) # either protoc_includes or includes would work in this case
+
