@@ -158,7 +158,7 @@ module soi_revision_module
      tempstr = fc_flags_str[(line-1)*72:line*72]
      tempstr = tempstr + ' '*(72-len(tempstr))
      modtext = modtext + """, &
-  &     {0}""".format(tempstr)
+    &     '{0}'""".format(tempstr)
   modtext = modtext + """ ]
 
   !> The date when this executable was built.

@@ -22,11 +22,22 @@ def options(opt):
 
 def configure(conf):
     ''' Make additional modules available during config. '''
+    from fortran_compiler import set_fc_flags
 
     append_modpaths(conf)
 
     # Recompilation if any of these change
     conf.vars = ['FC_NAME', 'FC_VERSION', 'FCFLAGS']
+
+    osfcflags = conf.env.FCFLAGS
+
+    # Flags for the default (production) variant
+    set_fc_flags(conf, ['optimize', 'warn'], osfcflags)
+
+    # Set flags for the debug variant
+    conf.setenv('debug',conf.env)
+    set_fc_flags(conf, ['standard', 'warn', 'w2e', 'debug'],
+                 osfcflags)
 
 
 def build(bld):
