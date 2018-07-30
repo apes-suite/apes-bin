@@ -70,6 +70,7 @@ def configure(conf):
 def fypp_add_user_flags(conf):
 	'''Import user settings for Fypp.'''
 	conf.add_os_flags('FYPP_FLAGS', dup=False)
+	conf.env['FYPP_LINENUM_FLAG'] = FYPP_LINENUM_FLAG
 
 
 @Configure.conf
@@ -101,7 +102,8 @@ class fypp_preprocessor(Task.Task):
         
 	def run(self):
 		argparser = fypp.get_option_parser()
-		args = [FYPP_LINENUM_FLAG]
+		args = []
+		args += self.env.FYPP_LINENUM_FLAG
 		args += self.env.FYPP_FLAGS
 		args += [FYPP_DEFINES_ST % ss for ss in self.env['PPDEFINES']]
 		args += [FYPP_INCPATH_ST % ss for ss in self.env['PPINCLUDES']]
