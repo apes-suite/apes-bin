@@ -97,31 +97,31 @@ def fypp_check(conf):
 class fypp_preprocessor(Task.Task):
 	color = 'BLUE'
 	
-        def keyword(self):
-                return 'Preprocessing'
+	def keyword(self):
+		return 'Preprocessing'
         
 	def run(self):
-                argparser = fypp.get_option_parser()
-                args = [FYPP_LINENUM_FLAG]
-                args += self.env.FYPP_FLAGS
+		argparser = fypp.get_option_parser()
+		args = [FYPP_LINENUM_FLAG]
+		args += self.env.FYPP_FLAGS
 		args += [FYPP_DEFINES_ST % ss for ss in self.env['PPDEFINES']]
 		args += [FYPP_INCPATH_ST % ss for ss in self.env['PPINCLUDES']]
-                args += [FYPP_INIFILES_ST % ss for ss in self.env['INIFILES']]
-                args += [FYPP_MODULES_ST % ss for ss in self.env['MODULES']]
-                opts, leftover = argparser.parse_args(args)
-                infile = self.inputs[0].abspath()
-                outfile = self.outputs[0].abspath()
-                if Logs.verbose:
-                        Logs.debug('runner: fypp.Fypp %r %r %r' 
-                                   % (args, infile, outfile))
+		args += [FYPP_INIFILES_ST % ss for ss in self.env['INIFILES']]
+		args += [FYPP_MODULES_ST % ss for ss in self.env['MODULES']]
+		opts, leftover = argparser.parse_args(args)
+		infile = self.inputs[0].abspath()
+		outfile = self.outputs[0].abspath()
+		if Logs.verbose:
+			Logs.debug('runner: fypp.Fypp %r %r %r' 
+			           % (args, infile, outfile))
                 
 		tool = fypp.Fypp(opts)
-                try:
-		        tool.process_file(infile, outfile)
-                except fypp.FyppError as err:
-                        msg = ("%s [%s:%d]"
-                               % (err.msg, err.fname, err.span[0] + 1))
-                        raise FyppPreprocError(msg)
+		try:
+			tool.process_file(infile, outfile)
+		except fypp.FyppError as err:
+			msg = ("%s [%s:%d]"
+			       % (err.msg, err.fname, err.span[0] + 1))
+			raise FyppPreprocError(msg)
 		return 0
 
 	def scan(self):
@@ -163,13 +163,13 @@ class FyppIncludeParser(object):
 		'''
 		# Nodes still to be processed
 		self._waiting = []
-		
+
 		# Files we have already processed
 		self._processed = set()
 
 		# List of dependent nodes
 		self._dependencies = []
-		
+
 		# List of unresolved dependencies
 		self._unresolved = set()
 
@@ -179,7 +179,7 @@ class FyppIncludeParser(object):
 
 	def parse(self, node):
 		'''Parser the includes in a given node.
-		
+
 		:return: Tuple with two elements: list of dependent nodes and list of
 			unresolved depencies.
 		'''
