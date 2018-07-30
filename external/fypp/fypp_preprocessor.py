@@ -64,7 +64,7 @@ class FyppPreprocError(Errors.WafError):
 
 def configure(conf):
 	fypp_check(conf)
-        fypp_add_user_flags(conf)
+	fypp_add_user_flags(conf)
 	
 
 @Configure.conf
