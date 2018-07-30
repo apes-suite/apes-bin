@@ -65,7 +65,6 @@ class FyppPreprocError(Errors.WafError):
 def configure(conf):
 	fypp_check(conf)
 	fypp_add_user_flags(conf)
-	
 
 @Configure.conf
 def fypp_add_user_flags(conf):
@@ -96,7 +95,7 @@ def fypp_check(conf):
 
 class fypp_preprocessor(Task.Task):
 	color = 'BLUE'
-	
+
 	def keyword(self):
 		return 'Preprocessing'
         
@@ -113,14 +112,14 @@ class fypp_preprocessor(Task.Task):
 		outfile = self.outputs[0].abspath()
 		if Logs.verbose:
 			Logs.debug('runner: fypp.Fypp %r %r %r' 
-			           % (args, infile, outfile))
+				% (args, infile, outfile))
                 
 		tool = fypp.Fypp(opts)
 		try:
 			tool.process_file(infile, outfile)
 		except fypp.FyppError as err:
 			msg = ("%s [%s:%d]"
-			       % (err.msg, err.fname, err.span[0] + 1))
+				% (err.msg, err.fname, err.span[0] + 1))
 			raise FyppPreprocError(msg)
 		return 0
 
