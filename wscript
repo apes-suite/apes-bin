@@ -20,14 +20,16 @@ def options(opt):
     append_modpaths(opt)
 
 
-def configure(conf):
-    ''' Make additional modules available during config. '''
-    from fortran_compiler import set_fc_flags
-
+def preconfigure(conf):
+    ''' Some settings that commonly neeed to be applied before configuration. '''
     append_modpaths(conf)
 
     # Recompilation if any of these change
     conf.vars = ['FC_NAME', 'FC_VERSION', 'FCFLAGS']
+
+def postconfigure(conf):
+    ''' Common settings that need to be applied after configuration. '''
+    from fortran_compiler import set_fc_flags
 
     osfcflags = conf.env.FCFLAGS
 
