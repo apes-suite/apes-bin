@@ -27,6 +27,7 @@ def preconfigure(conf):
     # Recompilation if any of these change
     conf.vars = ['FC_NAME', 'FC_VERSION', 'FCFLAGS']
 
+
 def postconfigure(conf):
     ''' Common settings that need to be applied after configuration. '''
     from fortran_compiler import set_fc_flags
@@ -49,3 +50,24 @@ def build(bld):
     append_modpaths(bld)
     if bld.options.print_cmds:
         import waflib.extras.print_commands
+    if bld.cmd == 'docu':
+        bld.env.FYPP_LINENUM_FLAG = []
+        bld.add_post_fun(gendocu)
+
+
+def gendocu(bld):
+    print('cwd for ford: {0}'.format(bld.top_dir))
+    print('mainpage for ford: {0}'.format(bld.env.ford_mainpage))
+    ec = bld.exec_command( ['ford', '-r', bld.env.revision_string,
+                              bld.env.ford_mainpage],
+                              shell=False, cwd=bld.top_dir      )
+    if ec != 0:
+        raise RuntimeError('FORD failed to run properly!')
+    return ec
+
+from waflib.Build import BuildContext
+class ford(BuildContext):
+   "Build FORD documentation"
+   cmd     = 'docu'
+   variant = 'ford'
+   fun     = 'build'
