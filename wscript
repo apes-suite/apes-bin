@@ -18,11 +18,13 @@ def append_modpaths(ctx):
 def options(opt):
     ''' Additional modules when loading options. '''
     append_modpaths(opt)
+    opt.load('make_fordoc')
 
 
 def preconfigure(conf):
     ''' Some settings that commonly neeed to be applied before configuration. '''
     append_modpaths(conf)
+    conf.load('make_fordoc')
 
     # Recompilation if any of these change
     conf.vars = ['FC_NAME', 'FC_VERSION', 'FCFLAGS']
@@ -48,6 +50,8 @@ def build(bld):
         pretty printed commands available.
     '''
     append_modpaths(bld)
+
+    bld.load('make_fordoc')
 
     if bld.options.print_cmds:
         import waflib.extras.print_commands
