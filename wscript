@@ -19,6 +19,8 @@ def options(opt):
     ''' Additional modules when loading options. '''
     append_modpaths(opt)
     opt.load('make_fordoc')
+    opt.add_option('--print-commands', action='store_true', default=False,
+                   help='Pretty print the commands executed during build.', dest='print_cmds')
 
 
 def preconfigure(conf):

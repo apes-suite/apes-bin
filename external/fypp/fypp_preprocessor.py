@@ -70,7 +70,7 @@ def configure(conf):
 def fypp_add_user_flags(conf):
 	'''Import user settings for Fypp.'''
 	conf.add_os_flags('FYPP_FLAGS', dup=False)
-	conf.env['FYPP_LINENUM_FLAG'] = FYPP_LINENUM_FLAG
+	conf.env['FYPP_LINENUM_FLAG'] = [FYPP_LINENUM_FLAG]
 
 
 @Configure.conf
