@@ -39,7 +39,7 @@ def postconfigure(conf):
     osfcflags = conf.env.FCFLAGS
 
     # Flags for the default (production) variant
-    set_fc_flags(conf, ['optimize', 'warn'], osfcflags)
+    set_fc_flags(conf, ['standard', 'optimize', 'warn', 'w2e'], osfcflags)
 
     # Set flags for the debug variant
     conf.setenv('debug',conf.env)
