@@ -110,7 +110,7 @@ def utests(bld, use, path='utests', preprocessor=None):
 	from waflib import Options
         import os
         preprocessor_string = ''
-	if preprocessir is not None:
+	if preprocessor is not None:
 		preprocessor_string = '{0} '.format(preprocessor)
 	ppsources = bld.path.ant_glob(path + '/*_test.fpp')
 	for utest in ppsources + bld.path.ant_glob(path + '/*_test.f90'):
