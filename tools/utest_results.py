@@ -103,28 +103,28 @@ def summary(bld):
 		else:
 			bld.fatal('Utests FAILED!')
 
-def utests(bld, use, path='utests', coco=False):
+def utests(bld, use, path='utests', preprocessor=None):
 	"""
 	Define the unit tests from the programs found in the utests directory.
 	"""
 	from waflib import Options
         import os
-        coco_string = ''
-	if coco:
-		coco_string = 'coco '
+        preprocessor_string = ''
+	if preprocessir is not None:
+		preprocessor_string = '{0} '.format(preprocessor)
 	ppsources = bld.path.ant_glob(path + '/*_test.fpp')
 	for utest in ppsources + bld.path.ant_glob(path + '/*_test.f90'):
 		nprocs = search_procs_in_file(utest.abspath())
 		if int(nprocs) > 0:
 			bld(
-			    features = coco_string+'fc fcprogram test',
+			    features = preprocessor_string+'fc fcprogram test',
 			    source = utest,
 			    use = use,
 			    ut_cmd='{0} -n {1} %s'.format(Options.options.mpicmd,nprocs),
 			    target = os.path.basename(utest.change_ext('').abspath()))
 		else:
 			bld(
-			    features = coco_string+'fc fcprogram test',
+			    features = preprocessor_string+'fc fcprogram test',
 			    source = utest,
 			    use = use,
 			    target = os.path.basename(utest.change_ext('').abspath()))
