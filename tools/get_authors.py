@@ -36,6 +36,7 @@ for fname in args.files:
           lastseq = 0
         else:
           year_str = "{0}, {1}".format(year_str, year)
+        prev_year = year
       if lastseq > 0:
         year_str = "{0}-{1}".format(year_str, lastseq)
       year_str = "{0} {1}".format(year_str, author)
