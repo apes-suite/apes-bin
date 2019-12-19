@@ -11,7 +11,7 @@ for fname in args.files:
   sources = glob.glob(fname)
   for f in sources:
     print(f)
-    hg_out = subprocess.check_output(['hg', 'log', '--template', r'''{date(date, '%Y')},{author}\n''', f])
+    hg_out = subprocess.check_output(['hg', 'log', '-f', '--template', r'''{date(date, '%Y')},{author}\n''', f])
     logreader = csv.reader(hg_out.decode('utf-8').split('\n'), delimiter=',')
     authors = {}
     for row in logreader:
