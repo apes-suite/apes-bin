@@ -149,8 +149,9 @@ module soi_revision_module
 
   !> The Fortran compiler flags used to compile this executable.
   character(len=72), parameter :: soi_FC_flags(soi_FC_nFlagLines) &
-""".format(task.env.revision_string, fc_name_str, " ".join(task.env.FC),
-       fc_version_str, nFlagLines)
+""".format(task.env.revision_string[:13],
+           fc_name_str[:32], " ".join(task.env.FC)[:32],
+           fc_version_str[:32], nFlagLines)
   tempstr = fc_flags_str[0:72]
   tempstr = tempstr + ' '*(72-len(tempstr))
   modtext = modtext + """    & = [ '%s'""" % (tempstr[0:72])
