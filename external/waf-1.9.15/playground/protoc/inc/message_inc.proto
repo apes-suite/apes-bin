@@ -1,4 +1,0 @@
-message IncludeMe {
-    required int32 test = 1;
-    optional uint32 blah = 2;
-}
