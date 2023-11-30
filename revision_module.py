@@ -17,6 +17,7 @@ def get_revision_of(projectdir):
       in the provided project directory.
   '''
   import sys
+  solver_rev = None
   try:
      import subprocess # If subprocess is available and provides check_output
      # This is working with Python > 2.7.
@@ -33,7 +34,7 @@ def get_revision_of(projectdir):
   if use_subproc:
     try:
       git_stat = 0
-      git_out = subprocess.check_output(['git', 'describe', '--abbrev=12' '--always' '--dirty=+'],
+      git_out = subprocess.check_output(['git', 'describe', '--abbrev=12', '--always', '--dirty=+'],
                                         cwd=projectdir)
     except subprocess.CalledProcessError as e:
       git_stat = e.returncode
