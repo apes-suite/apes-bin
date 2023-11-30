@@ -108,8 +108,8 @@ def utests(bld, use, path='utests', preprocessor=None):
 	Define the unit tests from the programs found in the utests directory.
 	"""
 	from waflib import Options
-        import os
-        preprocessor_string = ''
+	import os
+	preprocessor_string = ''
 	if preprocessor is not None:
 		preprocessor_string = '{0} '.format(preprocessor)
 	ppsources = bld.path.ant_glob(path + '/*_test.fpp')
