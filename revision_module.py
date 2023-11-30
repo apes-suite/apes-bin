@@ -32,35 +32,23 @@ def get_revision_of(projectdir):
 
   if use_subproc:
     try:
-      hg_stat = 0
-      hg_out = subprocess.check_output(['hg', 'id', '-i'], cwd=projectdir)
+      git_stat = 0
+      git_out = subprocess.check_output(['git', 'describe', '--abbrev=12' '--always' '--dirty=+'],
+                                        cwd=projectdir)
     except subprocess.CalledProcessError as e:
-      hg_stat = e.returncode
-      hg_out = e.output
+      git_stat = e.returncode
+      git_out = e.output
     except OSError:
-      hg_stat = 1
+      git_stat = 1
   else:
-    (hg_stat, hg_out) = commands.getstatusoutput('hg id -i', cwd=projectdir)
+    (git_stat, git_out) = commands.getstatusoutput('git describe --abbrev=12 --always --dirty=+',
+                                                   cwd=projectdir)
 
-  if hg_stat == 0:
+  if git_stat == 0:
     if sys.version_info[0] > 2:
-      solver_rev = hg_out.split()[-1].decode('ascii')
+      solver_rev = git_out.split()[-1].decode('ascii')
     else:
-      solver_rev = hg_out.split()[-1]
-  else:
-    # There is no hg, or hg did not find a proper revision.
-    # Try to use the node information from .hg_archival.
-    import os
-    archfile = os.path.join(projectdir, '.hg_archival.txt')
-    if os.path.isfile(archfile):
-      import re
-      arfile = open(archfile, 'r')
-      hgnodeline = re.compile('^node:')
-      for line in arfile:
-        if hgnodeline.match(line):
-          solver_rev = line[6:18]
-          break
-      arfile.close()
+      solver_rev = git_out.split()[-1]
 
   return solver_rev
 

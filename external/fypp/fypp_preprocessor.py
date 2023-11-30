@@ -1,12 +1,12 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # encoding: utf-8
-# Bálint Aradi, 2016-2017
+# Bálint Aradi, 2016-2021
 
 '''General module for using Fypp as preprocessor.
 
 This module implements the general framework for the Fypp preprocessor, but does
 not bind it to any task generator. If you want to use it to preprocessor Fortran
-source files (.fpp -> .f90), use the fypp_fortran module instead. Otherwise, 
+source files (.fpp -> .f90), use the fypp_fortran module instead. Otherwise,
 you can generate your own binding as ususal::
 
 	def build(bld):
@@ -15,7 +15,7 @@ you can generate your own binding as ususal::
 	from waflib import TaskGen
 	@TaskGen.extension('.fypp')
 	def process(self, node):
-    		tsk = self.create_task('fypp_preprocessor', [node], node.change_ext('.out'))
+		tsk = self.create_task('fypp_preprocessor', [node], node.change_ext('.out'))
 
 The preprocessor understands the following uselib attributes:
 
@@ -44,7 +44,7 @@ except ImportError:
 	fypp = None
 
 
-Tools.ccroot.USELIB_VARS['fypp'] = set([ 'PPDEFINES', 'PPINCLUDES', 'MODULES',
+Tools.ccroot.USELIB_VARS['fypp'] = set([ 'DEFINES', 'INCLUDES', 'MODULES',
                                          'INIFILES' ])
 
 FYPP_INCPATH_ST = '-I%s'
@@ -64,13 +64,13 @@ class FyppPreprocError(Errors.WafError):
 
 def configure(conf):
 	fypp_check(conf)
-	fypp_add_user_flags(conf)
+        fypp_add_user_flags(conf)
+
 
 @Configure.conf
 def fypp_add_user_flags(conf):
 	'''Import user settings for Fypp.'''
 	conf.add_os_flags('FYPP_FLAGS', dup=False)
-	conf.env['FYPP_LINENUM_FLAG'] = [FYPP_LINENUM_FLAG]
 
 
 @Configure.conf
@@ -95,33 +95,31 @@ def fypp_check(conf):
 ################################################################################
 
 class fypp_preprocessor(Task.Task):
-	color = 'BLUE'
 
-	def keyword(self):
-		return 'Preprocessing'
-        
+        def keyword(self):
+                return 'Preprocessing'
+
 	def run(self):
 		argparser = fypp.get_option_parser()
-		args = []
-		args += self.env.FYPP_LINENUM_FLAG
+		args = [FYPP_LINENUM_FLAG]
 		args += self.env.FYPP_FLAGS
-		args += [FYPP_DEFINES_ST % ss for ss in self.env['PPDEFINES']]
-		args += [FYPP_INCPATH_ST % ss for ss in self.env['PPINCLUDES']]
+		args += [FYPP_DEFINES_ST % ss for ss in self.env['DEFINES']]
+		args += [FYPP_INCPATH_ST % ss for ss in self.env['INCLUDES']]
 		args += [FYPP_INIFILES_ST % ss for ss in self.env['INIFILES']]
 		args += [FYPP_MODULES_ST % ss for ss in self.env['MODULES']]
 		opts, leftover = argparser.parse_args(args)
 		infile = self.inputs[0].abspath()
 		outfile = self.outputs[0].abspath()
 		if Logs.verbose:
-			Logs.debug('runner: fypp.Fypp %r %r %r' 
-				% (args, infile, outfile))
-                
+		        Logs.debug('runner: fypp.Fypp %r %r %r'
+		                   % (args, infile, outfile))
+
 		tool = fypp.Fypp(opts)
 		try:
 			tool.process_file(infile, outfile)
 		except fypp.FyppError as err:
 			msg = ("%s [%s:%d]"
-				% (err.msg, err.fname, err.span[0] + 1))
+			       % (err.msg, err.fname, err.span[0] + 1))
 			raise FyppPreprocError(msg)
 		return 0
 
@@ -129,14 +127,13 @@ class fypp_preprocessor(Task.Task):
 		parser = FyppIncludeParser(self.generator.includes_nodes)
 		nodes, names = parser.parse(self.inputs[0])
 		if Logs.verbose:
-			Logs.debug('deps: deps for %r: %r; unresolved: %r' 
+			Logs.debug('deps: deps for %r: %r; unresolved: %r'
 				% (self.inputs, nodes, names))
 		return (nodes, names)
 
 
 TaskGen.feature('fypp')(Tools.ccroot.propagate_uselib_vars)
-#Tools.ccroot.propagate_uselib_vars = TaskGen.feature('fypp')(Tools.ccroot.propagate_uselib_vars)
-#Tools.ccroot.apply_incpaths = TaskGen.feature('fypp')(Tools.ccroot.apply_incpaths)
+TaskGen.feature('fypp')(Tools.ccroot.apply_incpaths)
 
 
 
