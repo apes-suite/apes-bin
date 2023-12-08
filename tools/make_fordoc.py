@@ -34,7 +34,7 @@ def gendoc(task):
         task.generator.extern_urls = []
     if hasattr(task.generator, 'src_paths'):
         for sp in task.generator.src_paths:
-        src_paths.add(sp)
+            src_paths.add(sp)
     for srcfile in task.inputs:
         if srcfile not in task.generator.extern:
             src_paths.add(srcfile.parent.abspath())
