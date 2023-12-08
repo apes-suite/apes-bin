@@ -17,6 +17,8 @@ def gendoc(task):
         be the first target argument.
         All unique parent nodes of the files given as sources will be
         used as src_dir for the FORD command.
+        Additional paths can be provided via the `src_paths` option,
+        which has to be a list of paths to look for sources in.
         Pathes to external projects in the local file system can be
         provided to the generator via the 'extern' argument.
         URLs of external projects that are available online can be
@@ -30,6 +32,9 @@ def gendoc(task):
         task.generator.extern = []
     if not hasattr(task.generator, 'extern_urls'):
         task.generator.extern_urls = []
+    if hasattr(task.generator, 'src_paths'):
+        for sp in task.generator.src_paths:
+        src_paths.add(sp)
     for srcfile in task.inputs:
         if srcfile not in task.generator.extern:
             src_paths.add(srcfile.parent.abspath())
