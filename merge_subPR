@@ -58,25 +58,24 @@ repo=${repogit%.git}
 
 sub=""
 case "$repo" in
-	"ateles")
-		sub="atl"
-		;;
-	"musubi")
-		sub="mus"
-		;;
-	"seeder")
-		sub="sdr"
-		;;
-	"treelm")
-		sub="tem"
-		;;
-	*)
-		echo "Unknown repository $repo!"
-		echo "merge_subPR only works for ateles, musubi, seeder or treelm."
-		exit 1
-		;;
+    "ateles")
+        sub="atl"
+        ;;
+    "musubi")
+        sub="mus"
+        ;;
+    "seeder")
+        sub="sdr"
+        ;;
+    "treelm")
+        sub="tem"
+        ;;
+    *)
+        echo "Unknown repository $repo!"
+        echo "merge_subPR only works for ateles, musubi, seeder or treelm."
+        exit 1
+        ;;
 esac
-
 
 subdir=$superdir/$sub
 owd=$(pwd)
