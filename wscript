@@ -36,6 +36,7 @@ def postconfigure(conf):
     ''' Common settings that need to be applied after configuration. '''
     from fortran_compiler import set_fc_flags
 
+    conf.setenv('')
     osfcflags = conf.env.FCFLAGS
 
     # Flags for the default (production) variant
