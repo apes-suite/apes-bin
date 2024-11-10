@@ -43,7 +43,7 @@ class coco(Task):
         # print("Looking for dependencies of:")
         # print(self.inputs[0])
 
-        INC_REGEX = """^\?\?\s*INCLUDE\s+(?:\w+_)?[<"'](.+?)(?=["'>])"""
+        INC_REGEX = r"""^\?\?\s*INCLUDE\s+(?:\w+_)?[<"'](.+?)(?=["'>])"""
         re_inc = re.compile(INC_REGEX, re.I)
         node = self.inputs[0]
 

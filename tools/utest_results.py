@@ -131,7 +131,7 @@ def utests(bld, use, path='utests', preprocessor=None):
 
 def search_procs_in_file(fname):
 	import re
-	PROC_REGEX = """\s*!MPI!\s*nprocs\s*=\s*(\w+)"""
+	PROC_REGEX = r'\s*!MPI!\s*nprocs\s*=\s*(\w+)'
         re_proc = re.compile(PROC_REGEX, re.I)
 	with open(fname) as f:
 		for line in f:
