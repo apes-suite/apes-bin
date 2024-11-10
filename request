@@ -69,13 +69,14 @@ if ! gh --version &>/dev/null; then
     exit 1
 fi
 
-subdir=$(git rev-parse --show-toplevel 2>/dev/null)
-subremote=$(cd $superdir && git remote get-url origin 2>/dev/null)
-subrepogit=$(basename $subremote 2>/dev/null)
-subrepo=${subrepogit%.git}
 owd=$(pwd)
 
+subdir=$(git rev-parse --show-toplevel 2>/dev/null)
+subremote=$(git remote get-url origin 2>/dev/null)
+subrepogit=$(basename $subremote 2>/dev/null)
+subrepo=${subrepogit%.git}
 sub=$(basename $subdir 2>/dev/null)
+
 superdir=$subdir/..
 remote=$(cd $superdir && git remote get-url origin 2>/dev/null)
 repogit=$(basename $remote 2>/dev/null)
