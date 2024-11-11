@@ -171,7 +171,7 @@ if output=$(git status --porcelain) && [ -z "$output" ]; then
     cd $superdir
     PRnum=$(gh pr status --json number,headRefName --jq '.currentBranch.number')
     if  [ -z "$PRnum" ]; then
-        gh pr create -d -t "$subPRtitle" -b "See [PR in $subrepo](https://github.com/apes-suite/$subrepo/pull/$musPR)."
+        gh pr create -d -t "$subPRtitle" -b "See [PR in $subrepo](https://github.com/apes-suite/$subrepo/pull/$subPR)."
     else
         git push $@
     fi
