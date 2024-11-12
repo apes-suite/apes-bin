@@ -52,6 +52,7 @@ if ! gh --version &>/dev/null; then
 fi
 
 superdir=$(git rev-parse --show-toplevel)
+superbranch=$(git branch --show-current)
 remote=$(cd $superdir && git remote get-url origin 2>/dev/null)
 repogit=$(basename $remote 2>/dev/null)
 repo=${repogit%.git}
@@ -77,43 +78,42 @@ case "$repo" in
         ;;
 esac
 
+echo "Working on branch $superbranch in $superdir"
+
+if [ "$superbranch" = "main" ]; then
+    echo "Can't close any PR on main branch!"
+    exit 1
+fi
+
+PRnum=$(gh pr status --json number,headRefName --jq '.currentBranch.number')
+if [ -z "$PRnum" ]; then
+    echo "ERROR: There doesn't seem to be a PR for the current branch!"
+    exit 1
+fi
+
 subdir=$superdir/$sub
 owd=$(pwd)
+stashed=1
 
 if [ -d $subdir ]; then
     cd $subdir
     subbranch=$(git branch --show-current)
 
-    if [ "$subbranch" = "main" ]; then
+    echo "Checking for merged PR of $superbranch in $sub..."
+    subPRnum=$(gh pr list -s merged --json number,headRefName --jq ".[] | select(.headRefName == \"$superbranch\") | .number")
+    subPRmerge=$(gh pr list -s merged --json number,headRefName,mergeCommit --jq ".[] | select(.headRefName == \"$superbranch\") | .mergeCommit.oid")
+
+    if [ -z "subPRnum" ]; then
+	echo "ERROR: did not find a merged pull-request in $sub for branch $subbranch!"
+	echo "       The submodule PR needs to be merged back into main before"
+	echo "       closing the PR here!"
+	cd $owd
+	exit 1
+    fi
+    echo "Found the corresponding PR in submodule with number: #$subPRnum"
+
+    if [ "$subbranch" != "main" ]; then
         submsg=$(git show --pretty=format:%s -s HEAD)
-        cd $superdir
-        superbranch=$(git branch --show-current)
-        echo "Working on $superbranch in $superdir"
-        PRnum=$(gh pr status --json number,headRefName --jq '.currentBranch.number')
-        PRtitle=$(gh pr status --json title --jq '.currentBranch.title')
-        if [ -z "$PRnum" ]; then
-            echo "ERROR: There doesn't seem to be a PR for the current branch!"
-        else
-            echo "This is going to close PR #$PRnum:"
-            echo ""
-            gh pr view
-            echo ""
-            echo "Do you want to proceed (y/n)? "
-            read proceed
-            echo ""
-            if [ "$proceed" != "${proceed#[Yy]}" ]; then
-                git submodule set-branch --default $sub
-                git diff --quiet || git add $sub .gitmodules
-                git diff --cached --quiet || git commit -m "$submsg"
-                git push && gh pr ready
-                gh pr merge --auto -s -t "$PRtitle (#$PRnum)"
-            else
-                echo ""
-                echo "Nothing done. Bye."
-                echo ""
-            fi
-        fi
-    else
         echo ""
         echo "The $sub subdirectory has to be on the main branch!"
         echo "But I found:"
@@ -121,11 +121,78 @@ if [ -d $subdir ]; then
         echo "@: $submsg"
         echo ""
         echo "Can not close the merge request in this state."
+	echo ""
+	if [ $subbranch = $superbranch && ! git diff --quiet ]; then
+	    git checkout main
+	    git pull
+	    git checkout $subPRmerge
+        else
+	    echo "We can try to heal this by switching to the main branch now"
+	    echo "and checkout the merge commit $subPRmerge."
+	    echo "(This will also stash working directory changes)"
+	    echo ""
+	    echo "Do you want to proceed and do so now (y/n)? "
+	    read proceed
+            if [ "$proceed" != "${proceed#[Yy]}" ]; then
+	        git diff --quiet || stashed=$(git stash)
+	        git stash 2>/dev/null
+	        git checkout main
+	        git pull
+	        git checkout $subPRmerge
+	        echo ""
+	    else
+	        echo ""
+	        echo "Not changing the submodule. Bye."
+	        echo ""
+	        cd $owd
+	        exit 1
+	    fi
+	fi
+    fi
+
+    submsg=$(git show --pretty=format:%s -s HEAD)
+    cd $superdir
+    PRtitle=$(gh pr status --json title --jq '.currentBranch.title')
+
+    
+    echo "This is going to close PR #$PRnum:"
+    echo ""
+    gh pr view
+    echo ""
+    echo "Do you want to proceed (y/n)? "
+    read proceed
+    echo ""
+    if [ "$proceed" != "${proceed#[Yy]}" ]; then
+        git submodule set-branch --default $sub
+        git diff --quiet || git add $sub .gitmodules
+        git diff --cached --quiet || git commit -m "$submsg"
+        git push && gh pr ready
+        gh pr merge --auto -s -t "$PRtitle (#$PRnum)"
+	git checkout --recurse-submodules main
+	echo ""
+	echo "Now on main branch, remember to pull the merge"
+	echo "once it succeeded in github!"
+	echo ""
+    else
+        echo ""
+        echo "Nothing done. Bye."
         echo ""
     fi
-    
+
+    if [ "$subbranch" != "main" ]; then
+	cd $subdir
+	if [ "$subbranch" != "$superbranch" ]; then
+	    # Only checkout the subbranch again if it wasn't the merged branch.
+	    git checkout $subbranch
+	fi
+        if $stashed; then
+            git stash pop
+        fi
+    fi
+
 else
-    echo "merge_subpr only works in the repository that contains"
+    echo "merge_subPR only works in the repository that contains"
     echo "the $sub subdirectory."
+    exit 1
 fi
 cd $owd
