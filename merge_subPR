@@ -121,8 +121,14 @@ if [ -d $subdir ]; then
         echo "@: $submsg"
         echo ""
         echo "Can not close the merge request in this state."
-	echo ""
-	if [ $subbranch = $superbranch && ! git diff --quiet ]; then
+        echo ""
+        nodiff=false
+        if [ "$subbranch" == "$superbranch" ]; then
+            ! git diff --quiet
+            nodiff=$?
+	fi
+        if [ $nodiff ]; then
+	    echo "Trying to automatically heal this now"
 	    git checkout main
 	    git pull
 	    git checkout $subPRmerge
@@ -134,7 +140,7 @@ if [ -d $subdir ]; then
 	    echo "Do you want to proceed and do so now (y/n)? "
 	    read proceed
             if [ "$proceed" != "${proceed#[Yy]}" ]; then
-	        git diff --quiet || stashed=$(git stash)
+	        git diff --quiet && stashed=$(git stash)
 	        git stash 2>/dev/null
 	        git checkout main
 	        git pull
@@ -185,7 +191,7 @@ if [ -d $subdir ]; then
 	    # Only checkout the subbranch again if it wasn't the merged branch.
 	    git checkout $subbranch
 	fi
-        if $stashed; then
+        if [ $stashed ]; then
             git stash pop
         fi
     fi
