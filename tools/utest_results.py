@@ -121,12 +121,14 @@ def utests(bld, use, path='utests', preprocessor=None):
 			    source = utest,
 			    use = use,
 			    ut_cmd='{0} -n {1} %s'.format(Options.options.mpicmd,nprocs),
+			    install_path = None,
 			    target = os.path.basename(utest.change_ext('').abspath()))
 		else:
 			bld(
 			    features = preprocessor_string+'fc fcprogram test',
 			    source = utest,
 			    use = use,
+			    install_path = None,
 			    target = os.path.basename(utest.change_ext('').abspath()))
 
 def search_procs_in_file(fname):
