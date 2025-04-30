@@ -8,6 +8,11 @@ from waflib import Configure, Context, Logs, Utils
 from waflib.Task import Task
 from waflib.TaskGen import feature, extension
 
+def options(opt):
+    opt.add_option('--coco_reports', action='store_true', default=False,
+                   help='Activate output of CoCo reports')
+    opt.add_option('--coco_set', action='store', help='File with coco settings')
+
 def configure(conf):
     conf.add_os_flags('COCOFLAGS')
     conf.find_program('coco', var='COCO', mandatory=False)
@@ -26,6 +31,22 @@ def configure(conf):
 
     conf.env.COCO[0] = os.path.abspath(conf.env.COCO[0])
     Logs.warn('Found CoCo: '+ ' '.join(conf.env.COCO))
+
+    if conf.options.coco_set:
+      cocoset_src = conf.path.find_resource(conf.options.coco_set)
+      if cocoset_src:
+        cocoset_bld = conf.path.find_or_declare('coco.set')
+        cocoset_bld.write(cocoset_src.read())
+      else:
+        Logs.warn(f'Coco settings file "{conf.options.coco_set}" not found!')
+
+    if not conf.options.coco_reports:
+      # Make coco silent, if not explicitly asked for reports:
+      if conf.env.COCOFLAGS:
+        conf.env.COCOFLAGS.insert(0, '-s')
+        conf.env.COCOFLAGS.append('-ad')
+      else:
+        conf.env.COCOFLAGS = ['-s', '-ad']
 
 @feature('coco')
 def dummy(self):
