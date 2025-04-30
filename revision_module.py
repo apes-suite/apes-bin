@@ -74,11 +74,11 @@ def fill_revision_string(bld, subdir='.'):
     bld.env.revision_string = get_revision_of(projectdir)
 
 
-def revision_module_file(task):
+def revision_module_text(env):
   """ Define a revision module describing the project revision and the
       compilation information.
 
-      The revision information is taken from task.env.revision_string,
+      The revision information is taken from env.revision_string,
       which might be set on the command line by --revision_string.
       To have the revision string properly defined before creating this
       module file, fill_revision_string should be called.
@@ -87,16 +87,16 @@ def revision_module_file(task):
   import datetime
   from waflib import Logs
 
-  fc_name_str = "".join(task.env['FC_NAME'])
-  fc_version_str = ".".join(task.env['FC_VERSION'])
-  fc_flags_str = " ".join(task.env['FCFLAGS'])
-  link_flags_str = " ".join(task.env['LINKFLAGS'])
+  fc_name_str = "".join(env['FC_NAME'])
+  fc_version_str = ".".join(env['FC_VERSION'])
+  fc_flags_str = " ".join(env['FCFLAGS'])
+  link_flags_str = " ".join(env['LINKFLAGS'])
   builddate = datetime.datetime.now().strftime("%Y-%m-%d")
 
   Logs.info('Compiler name   : {0}'.format(fc_name_str))
   Logs.info('Compiler version: {0}'.format(fc_version_str))
   Logs.info('Compiler options: {0}'.format(fc_flags_str))
-  Logs.info('Project revision: {0}'.format(task.env.revision_string))
+  Logs.info('Project revision: {0}'.format(env.revision_string))
 
 
   flaglen = len(fc_flags_str)
@@ -138,8 +138,8 @@ module soi_revision_module
 
   !> The Fortran compiler flags used to compile this executable.
   character(len=72), parameter :: soi_FC_flags(soi_FC_nFlagLines) &
-""".format(task.env.revision_string[:13],
-           fc_name_str[:32], " ".join(task.env.FC)[:32],
+""".format(env.revision_string[:13],
+           fc_name_str[:32], " ".join(env.FC)[:32],
            fc_version_str[:32], nFlagLines)
   tempstr = fc_flags_str[0:72]
   tempstr = tempstr + ' '*(72-len(tempstr))
@@ -157,4 +157,29 @@ module soi_revision_module
 end module soi_revision_module
 """.format(builddate)
 
-  return(task.outputs[0].write(modtext))
+  return(modtext)
+
+
+def revision_module_file(task):
+  return(task.outputs[0].write(revision_module_text(task.env)))
+
+
+from waflib import TaskGen
+
+@TaskGen.feature('revmod')
+@TaskGen.before('process_source')
+def create_revmod(self):
+  """ Define a revision module describing the project revision and the
+      compilation information.
+
+      The revision information is taken from self.env.revision_string,
+      which might be set on the command line by --revision_string.
+      To have the revision string properly defined before creating this
+      module file, fill_revision_string should be called.
+  """
+  node = self.path.get_bld()
+  node = node.make_node('soi_revision_module.f90')
+  node.parent.mkdir()
+  node.write(revision_module_text(self.env))
+  if "fc" in self.features:
+    self.source.append(node)
