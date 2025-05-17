@@ -13,7 +13,7 @@ def configure(conf):
 def get_revision_of(projectdir):
   ''' Try to find a revision string of the code in projectdir.
 
-      This routine will try to determine the mercurial version
+      This routine will try to determine the git version
       in the provided project directory.
   '''
   import sys
@@ -53,6 +53,49 @@ def get_revision_of(projectdir):
 
   return solver_rev
 
+def get_tag_of(projectdir):
+  ''' Try to find a version string of the code in projectdir.
+
+      This routine will try to determine the git tag
+      in the provided project directory.
+  '''
+  import sys
+  solver_tag = None
+  try:
+     import subprocess # If subprocess is available and provides check_output
+     # This is working with Python > 2.7.
+     # The check on check_output is necessary, because 2.6 provides subprocess
+     # put without check_output.
+     if getattr(subprocess, 'check_output'):
+       use_subproc = True
+     else:
+       use_subproc = False
+  except:
+     import commands
+     use_subproc = False
+
+  if use_subproc:
+    try:
+      git_stat = 0
+      git_out = subprocess.check_output(['git', 'describe', '--tags'], cwd=projectdir)
+    except subprocess.CalledProcessError as e:
+      git_stat = e.returncode
+      git_out = e.output
+    except OSError:
+      git_stat = 1
+  else:
+    (git_stat, git_out) = commands.getstatusoutput('git describe --tags', cwd=projectdir)
+
+  if git_stat == 0:
+    if sys.version_info[0] > 2:
+      solver_tag = git_out.split()[-1].decode('ascii')
+    else:
+      solver_tag = git_out.split()[-1]
+
+  if not solver_tag:
+    solver_tag = "0.0.0"
+
+  return solver_tag
 
 def fill_revision_string(bld, subdir='.'):
   """ Update the bld.env.revision_string information.
@@ -69,6 +112,7 @@ def fill_revision_string(bld, subdir='.'):
   else:
     construct_revision = False
 
+  bld.env.version_tag = get_tag_of(bld.path.abspath())
   if construct_revision:
     projectdir = os.path.join(bld.path.abspath(), subdir)
     bld.env.revision_string = get_revision_of(projectdir)
@@ -96,6 +140,7 @@ def revision_module_text(env):
   Logs.info('Compiler name   : {0}'.format(fc_name_str))
   Logs.info('Compiler version: {0}'.format(fc_version_str))
   Logs.info('Compiler options: {0}'.format(fc_flags_str))
+  Logs.info('Project version : {0}'.format(env.version_tag))
   Logs.info('Project revision: {0}'.format(env.revision_string))
 
 
@@ -116,9 +161,13 @@ def revision_module_text(env):
 
 module soi_revision_module
   implicit none
-  !> The HG revision of the application used for this executable.
+  !> The git revision of the application used for this executable.
   character(len=13), parameter :: soi_solver_revision &
     &                            = '{0}'
+
+  !> The version of this application
+  character(len=16), parameter :: soi_solver_version &
+    &                            = '{5}'
 
   !> Name of the compiler.
   character(len=32), parameter :: soi_FC_name &
@@ -140,7 +189,7 @@ module soi_revision_module
   character(len=72), parameter :: soi_FC_flags(soi_FC_nFlagLines) &
 """.format(env.revision_string[:13],
            fc_name_str[:32], " ".join(env.FC)[:32],
-           fc_version_str[:32], nFlagLines)
+           fc_version_str[:32], nFlagLines, env.version_tag[:16])
   tempstr = fc_flags_str[0:72]
   tempstr = tempstr + ' '*(72-len(tempstr))
   modtext = modtext + """    & = [ '%s'""" % (tempstr[0:72])
