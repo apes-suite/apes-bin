@@ -30,13 +30,16 @@ def summary(bld):
 			bld.add_post_fun(utest_results.summary)
 	"""
 	from waflib import Logs
+	from waflib.extras.junit_xml import TestSuite, TestCase
+	import os
 	import sys
 
 	lst = getattr(bld, 'utest_results', [])
 
 	# Check for the PASSED keyword in the last line of stdout, to
 	# decide on the actual success/failure of the test.
-        nlst = []
+	nlst = []
+	j_cases = []
 	for (f, code, out, err) in lst:
 		ncode = code
 		if not code:
@@ -49,7 +52,13 @@ def summary(bld):
 			else:
 				ncode = True
 		nlst.append([f, ncode, out, err])
+		j_cases.append(TestCase(os.path.basename(f), os.path.basename(os.path.dirname(f)), None, out, err))
+		if ncode:
+			j_cases[-1].add_failure_info('utest failed!')
 	lst = nlst
+	juf = bld.bldnode.find_or_declare('waf-utest.xml')
+	with open(juf.abspath(), 'w') as f:
+		TestSuite.to_file(f, [TestSuite(f"{bld.variant} Unit Tests", j_cases)])
 
 	if lst:
 		Logs.pprint('CYAN', 'Utests execution summary:')
